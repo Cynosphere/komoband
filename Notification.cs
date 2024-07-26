@@ -12,16 +12,12 @@ public class Notification {
     TypeDiscriminatorPropertyName = "type",
     IgnoreUnrecognizedTypeDiscriminators = true
 )]
-[JsonDerivedType(typeof(GenericEvent))]
 [JsonDerivedType(typeof(AddSubscriberPipeEvent), typeDiscriminator: "AddSubscriberPipe")]
 [JsonDerivedType(typeof(ReloadConfigurationEvent), typeDiscriminator: "ReloadConfiguration")]
 [JsonDerivedType(typeof(ReloadStaticConfigurationEvent), typeDiscriminator: "ReloadStaticConfiguration")]
 [JsonDerivedType(typeof(FocusWorkspaceNumberEvent), typeDiscriminator: "FocusWorkspaceNumber")]
 [JsonDerivedType(typeof(SendContainerToWorkspaceNumberEvent), typeDiscriminator: "SendContainerToWorkspaceNumber")]
-public abstract class Event;
-public class GenericEvent : Event {
-    public object? Content {get; set;}
-}
+public class Event;
 public class AddSubscriberPipeEvent : Event {
     public string Content {get; set;}
 }

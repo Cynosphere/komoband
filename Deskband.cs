@@ -5,6 +5,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
+
 #pragma warning disable 8603
 #pragma warning disable 8618
 #pragma warning disable 8625
@@ -14,12 +18,16 @@ namespace komoband;
 [Guid("6249307D-7F13-437B-BF13-13BE692C22A5")]
 [CSDeskBand.CSDeskBandRegistration(Name = "komoband", ShowDeskBand = false)]
 public class Deskband : CSDeskBand.CSDeskBandWin {
+    private static string DATA_PATH = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "komoband");
+
+    public Logger Logger;
+    public LoggingLevelSwitch loggerSwitch;
+
     private static Control control;
     private static NamedPipeServerStream server;
     private static Thread pipeThread;
     private static Thread watchdog;
     private bool awaitingReconnect = false;
-    public bool hasConsole = false;
 
     private static JsonSerializerOptions jsonOptions = new JsonSerializerOptions {
         PropertyNameCaseInsensitive = true
@@ -27,7 +35,20 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
 
     public Deskband() {
         AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
-        //this.hasConsole = AllocConsole();
+
+        if (!Directory.Exists(DATA_PATH))
+            Directory.CreateDirectory(DATA_PATH);
+
+        this.loggerSwitch = new LoggingLevelSwitch();
+        // TODO: configurable when config exists
+        this.loggerSwitch.MinimumLevel = LogEventLevel.Information;
+        var logConfig = new LoggerConfiguration()
+            .MinimumLevel.ControlledBy(this.loggerSwitch)
+            .WriteTo.File(Path.Combine(DATA_PATH, "log.txt"), rollingInterval: RollingInterval.Day);
+        this.Logger = logConfig.CreateLogger();
+        Log.Logger = Logger;
+
+        Logger.Information("komoband started");
 
         Options.MinHorizontalSize = new Size(30, 30);
         Options.MaxHorizontalHeight = 30;
@@ -41,11 +62,11 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
                     if (server != null && !this.awaitingReconnect) {
                         if (!server.IsConnected) {
                             server.WaitForConnection();
-                            if (this.hasConsole) Console.WriteLine("Connected to pipe");
+                            Logger.Information("Connected to komorebi");
                         }
 
                         var dataStr = this.ReadString(server);
-                        if (this.hasConsole) Console.WriteLine($"Got data: {dataStr}");
+                        Logger.Verbose("Got data:\n{Data}", dataStr.Replace("\n",""));
 
                         if (dataStr.StartsWith("{")) {
                             try {
@@ -57,23 +78,23 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
                                         data.Event is ReloadConfigurationEvent ||
                                         data.Event is ReloadStaticConfigurationEvent
                                     ) {
-                                        if (this.hasConsole) Console.WriteLine("Got setup event");
+                                        Logger.Debug("Got setup event");
                                         var workspacesHolder = data.State.Monitors.Elements[0].Workspaces;
                                         var workspaces = workspacesHolder.Elements;
                                         ((BandControl) control).SetupWorkspaces(workspaces, workspacesHolder.Focused);
                                     } else if (data.Event is FocusWorkspaceNumberEvent) {
-                                        if (this.hasConsole) Console.WriteLine("Got update event");
+                                        Logger.Debug("Got focus workspace event");
                                         var workspaces = data.State.Monitors.Elements[0].Workspaces.Elements;
                                         ((BandControl) control).UpdateWorkspaces(workspaces, ((FocusWorkspaceNumberEvent) data.Event).Content);
                                     } else if (data.Event is SendContainerToWorkspaceNumberEvent) {
-                                        if (this.hasConsole) Console.WriteLine("Got update event");
+                                        Logger.Debug("Got send to workspace event");
                                         var workspacesHolder = data.State.Monitors.Elements[0].Workspaces;
                                         var workspaces = workspacesHolder.Elements;
                                         ((BandControl) control).UpdateWorkspaces(workspaces, workspacesHolder.Focused);
                                     }
                                 }
                             } catch (Exception serErr) {
-                                if (this.hasConsole) Console.WriteLine($"Failed to deserialize JSON: {serErr.ToString()}");
+                                Logger.Error(serErr, "Failed to deserialize JSON:");
                             }
                         }
                     }
@@ -84,7 +105,7 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
                             server.Close();
                         }
                     } else {
-                        if (this.hasConsole) Console.WriteLine($"Error in thread: {err.Message}");
+                        Logger.Error(err, "Error in thread:");
                         ((BandControl) control).ShowLabel();
                         try {
                             if (server != null && !this.awaitingReconnect) {
@@ -92,7 +113,7 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
                                 this.ConnectPipe();
                             }
                         } catch (Exception err2) {
-                            if (this.hasConsole) Console.WriteLine($"Error reconnecting to pipe: {err2.Message}");
+                            Logger.Error(err2,"Error reconnecting to pipe:");
                         }
                     }
                 }
@@ -105,7 +126,7 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
                 try {
                     Process[] komorebi = Process.GetProcessesByName("komorebi");
                     if (komorebi.Length == 0 && !this.awaitingReconnect) {
-                        if (this.hasConsole) Console.WriteLine("Lost komorebi");
+                        Logger.Information("Lost komorebi");
                         ((BandControl) control).ShowLabel();
                         if (server != null) {
                             if (server.IsConnected) server.Disconnect();
@@ -128,7 +149,7 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
         try {
             this.ConnectPipe();
         } catch (Exception err) {
-            if (this.hasConsole) Console.WriteLine($"Error connecting to pipe: {err.Message}");
+            Logger.Error(err, "Error connecting to pipe:");
         }
     }
 
@@ -161,16 +182,15 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
     }
 
     protected override void DeskbandOnClosed() {
+        Logger.Information("komoband closing");
         try {
             pipeThread.Abort();
             watchdog.Abort();
             control.Dispose();
-            if (this.hasConsole) {
-                bool freed = FreeConsole();
-                if (freed) this.hasConsole = false;
-            }
-        } catch {
-            // noop
+        } catch (Exception err) {
+            Logger.Error(err, "Failed to close properly:");
+        } finally {
+            Logger.Dispose();
         }
     }
 
