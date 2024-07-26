@@ -1,7 +1,9 @@
 # komoband
 Simplistic workspace switcher deskband for [komorebi](https://github.com/LGUG2Z/komorebi)
 
-**Nothing is configurable in its current state and colors and fonts are hardcoded currently!**
+<!-- prettier-ignore -->
+> [!CAUTION]
+> **Nothing is configurable in its current state!** Colors and fonts are hardcoded currently.
 
 ![Screenshot of komoband](.assets/normal.png)
 
