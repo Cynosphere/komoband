@@ -807,7 +807,7 @@ namespace CSDeskBand
         /// <summary>
         /// Gets the taskbar information
         /// </summary>
-        protected TaskbarInfo TaskbarInfo { get; }
+        public TaskbarInfo TaskbarInfo { get; }
 
         /// <summary>
         /// Gets the main control for the deskband.

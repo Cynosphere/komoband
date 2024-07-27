@@ -1,10 +1,6 @@
 # komoband
 Simplistic workspace switcher deskband for [komorebi](https://github.com/LGUG2Z/komorebi)
 
-<!-- prettier-ignore -->
-> [!CAUTION]
-> **Nothing is configurable in its current state!** Colors and fonts are hardcoded currently.
-
 ![Screenshot of komoband](.assets/normal.png)
 
 ![Screenshot of komoband with mixed name styles for workspaces](.assets/mixed_names.png)
@@ -17,10 +13,11 @@ cd bin/Debug/net462
 sudo regasm /codebase komoband.dll
 ```
 
+## Configuration
+Config file is located at `%appdata%/komoband/config.json`
+
 ## To-Do
-- Configuration
 - Layout switcher
 
 ## Known Issues
-- Sometimes fails to reconnect properly when komorebi is restarted, and can cause Explorer to crash as a result
-- Probably some race condition issues
+- Sometimes fails to reconnect properly when komorebi is restarted

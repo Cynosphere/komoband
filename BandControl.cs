@@ -8,10 +8,13 @@ public partial class BandControl: UserControl {
     private Label labelStatus;
     private Button[] buttons;
     private Deskband deskband = null;
+    private Font font;
 
     public BandControl(Deskband deskband) {
         this.deskband = deskband;
         this.InitializeComponent();
+
+        this.UpdateFont();
     }
 
     public void InitializeComponent() {
@@ -22,18 +25,48 @@ public partial class BandControl: UserControl {
         this.BackColor = Color.Black;
 
         this.labelStatus.Name = "komoband_status";
-        this.labelStatus.AutoSize = true;
+        if (this.deskband.TaskbarInfo.Orientation == CSDeskBand.TaskbarOrientation.Vertical) {
+            this.labelStatus.Size = new Size(30, 192);
+        } else {
+            this.labelStatus.Size = new Size(192, 30);
+        }
         this.labelStatus.Dock = DockStyle.Fill;
-        // TODO: configurable font
-        this.labelStatus.Font = new Font("Terminus (TTF)", 8F, FontStyle.Regular, GraphicsUnit.Point, 0);
-        this.labelStatus.ForeColor = Color.White;
+        this.labelStatus.Font = this.font;
+        this.labelStatus.ForeColor = this.deskband.config.ActiveWorkspaceColor.ToColor();
         this.labelStatus.TextAlign = ContentAlignment.MiddleCenter;
         this.labelStatus.Text = "Waiting for komorebi";
+
         this.Controls.Add(this.labelStatus);
 
         this.ResumeLayout(false);
-        this.labelStatus.Height = 30;
         this.PerformLayout();
+    }
+
+    private void labelStatus_Paint(object sender, PaintEventArgs e) {
+        Label label = (Label) sender;
+
+        var gr = e.Graphics;
+        var rect = new Rectangle(0, 0, 192, 30);
+        var brush = new SolidBrush(label.ForeColor);
+
+        var format = new StringFormat();
+        format.Alignment = StringAlignment.Center;
+        format.LineAlignment = StringAlignment.Center;
+
+        var state = gr.Save();
+        gr.ResetTransform();
+
+        if (this.deskband.TaskbarInfo.Orientation == CSDeskBand.TaskbarOrientation.Vertical) {
+            gr.RotateTransform(90);
+        }
+
+        gr.TranslateTransform(rect.Width / 2, rect.Height / 2, System.Drawing.Drawing2D.MatrixOrder.Append);
+
+        gr.DrawString(label.Text, label.Font, brush, rect, format);
+
+        gr.Restore(state);
+
+        brush.Dispose();
     }
 
     private void _ShowLabel() {
@@ -59,6 +92,32 @@ public partial class BandControl: UserControl {
         }
     }
 
+    public void _UpdateFont() {
+        this.font = new Font(this.deskband.config.Font, this.deskband.config.FontSize, FontStyle.Regular, GraphicsUnit.Point, 0);
+
+        if (this.labelStatus != null) {
+            this.labelStatus.Font = this.font;
+        }
+        if (this.buttons != null) {
+            foreach (Button button in this.buttons) {
+                if (button == null) continue;
+
+                button.Font = this.font;
+            }
+        }
+        this.Invalidate();
+    }
+
+    public void UpdateFont() {
+        if (this.InvokeRequired) {
+            this.BeginInvoke((MethodInvoker)delegate() {
+                this._UpdateFont();
+            });
+        } else {
+            this._UpdateFont();
+        }
+    }
+
     public void SetupWorkspaces(Workspace[] workspaces, int selected) {
         if (this.buttons != null) {
             foreach (Button button in this.buttons) {
@@ -81,21 +140,19 @@ public partial class BandControl: UserControl {
             button.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             button.AutoEllipsis = false;
             button.Padding = new Padding(0);
-            button.Dock = DockStyle.Left;
+            button.Dock = this.deskband.TaskbarInfo.Orientation == CSDeskBand.TaskbarOrientation.Vertical ? DockStyle.Top : DockStyle.Left;
             button.FlatStyle = FlatStyle.Flat;
             button.BackColor = Color.Transparent;
-            button.FlatAppearance.MouseDownBackColor = Color.FromArgb(64, 0, 0, 0);
+            button.FlatAppearance.MouseDownBackColor = this.deskband.config.PressColor.ToColor();
             button.FlatAppearance.MouseOverBackColor = Color.Transparent;
             button.FlatAppearance.BorderSize = 0;
-            // TODO: configurable font
-            button.Font = new Font("Terminus (TTF)", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            // TODO: configurable colors
-            button.ForeColor = Color.FromArgb(255, 0x5c, 0x5c, 0x5c);
+            button.Font = this.font;
+            button.ForeColor = this.deskband.config.WorkspaceColor.ToColor();
             if (workspace.Containers.Elements.Length == 0) {
-                button.ForeColor = Color.FromArgb(255, 0x38, 0x38, 0x38);
+                button.ForeColor = this.deskband.config.EmptyWorkspaceColor.ToColor();
             }
             if (i == selected) {
-                button.ForeColor = Color.FromArgb(255, 0xde, 0xdb, 0xeb);
+                button.ForeColor = this.deskband.config.ActiveWorkspaceColor.ToColor();
             }
             button.TextAlign = ContentAlignment.MiddleCenter;
             button.Text = workspace.Name;
@@ -133,14 +190,18 @@ public partial class BandControl: UserControl {
             var button = this.buttons[i];
             if (button == null) continue;
 
-            button.ForeColor = Color.FromArgb(255, 0x5c, 0x5c, 0x5c);
+            button.FlatAppearance.MouseDownBackColor = this.deskband.config.PressColor.ToColor();
+
+            button.ForeColor = this.deskband.config.WorkspaceColor.ToColor();
             if (workspace.Containers.Elements.Length == 0) {
-                button.ForeColor = Color.FromArgb(255, 0x38, 0x38, 0x38);
+                button.ForeColor = this.deskband.config.EmptyWorkspaceColor.ToColor();
             }
             if (i == selected) {
-                button.ForeColor = Color.FromArgb(255, 0xde, 0xdb, 0xeb);
+                button.ForeColor = this.deskband.config.ActiveWorkspaceColor.ToColor();
             }
         }
+
+        this.labelStatus.ForeColor = this.deskband.config.ActiveWorkspaceColor.ToColor();
         this.Invalidate();
     }
 

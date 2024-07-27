@@ -18,16 +18,18 @@ namespace komoband;
 [Guid("6249307D-7F13-437B-BF13-13BE692C22A5")]
 [CSDeskBand.CSDeskBandRegistration(Name = "komoband", ShowDeskBand = false)]
 public class Deskband : CSDeskBand.CSDeskBandWin {
-    private static string DATA_PATH = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "komoband");
-
     public Logger Logger;
     public LoggingLevelSwitch loggerSwitch;
+
+    public Config config;
 
     private static Control control;
     private static NamedPipeServerStream server;
     private static Thread pipeThread;
     private static Thread watchdog;
     private bool awaitingReconnect = false;
+
+    private State lastState;
 
     private static JsonSerializerOptions jsonOptions = new JsonSerializerOptions {
         PropertyNameCaseInsensitive = true
@@ -36,24 +38,52 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
     public Deskband() {
         AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
 
-        if (!Directory.Exists(DATA_PATH))
-            Directory.CreateDirectory(DATA_PATH);
+        if (!Directory.Exists(Constants.DATA_PATH))
+            Directory.CreateDirectory(Constants.DATA_PATH);
+
+        this.config = Config.Load();
 
         this.loggerSwitch = new LoggingLevelSwitch();
         // TODO: configurable when config exists
-        this.loggerSwitch.MinimumLevel = LogEventLevel.Information;
+        this.loggerSwitch.MinimumLevel = this.config.DebugLogs ? LogEventLevel.Verbose : LogEventLevel.Information;
         var logConfig = new LoggerConfiguration()
             .MinimumLevel.ControlledBy(this.loggerSwitch)
-            .WriteTo.File(Path.Combine(DATA_PATH, "log.txt"), rollingInterval: RollingInterval.Day);
+            .WriteTo.File(Path.Combine(Constants.DATA_PATH, "log.txt"), rollingInterval: RollingInterval.Day);
         this.Logger = logConfig.CreateLogger();
         Log.Logger = Logger;
 
         Logger.Information("komoband started");
 
+        Options.Title = "komoband";
+        Options.ShowTitle = false;
+
         Options.MinHorizontalSize = new Size(30, 30);
         Options.MaxHorizontalHeight = 30;
+        Options.HorizontalSize = new Size(192, 30);
+
+        Options.MinVerticalSize = new Size(30, 30);
+        Options.MaxVerticalWidth = 30;
+        Options.VerticalSize = new Size(30, 192);
 
         control = new BandControl(this);
+
+        var actionReload = new CSDeskBand.ContextMenu.DeskBandMenuAction("Reload Config");
+        actionReload.Enabled = true;
+        actionReload.Clicked += (sender, args) => {
+            config = Config.Load();
+            var band = (BandControl) control;
+
+            band.UpdateFont();
+
+            if (this.lastState != null) {
+                var workspacesHolder = this.lastState.Monitors.Elements[0].Workspaces;
+                var selected = workspacesHolder.Focused;
+                var workspaces = workspacesHolder.Elements;
+
+                band.UpdateWorkspaces(workspaces, selected);
+            }
+        };
+        Options.ContextMenuItems.Add(actionReload);
 
         server = new NamedPipeServerStream("komoband", PipeDirection.In, 1);
         pipeThread = new Thread(() => {
@@ -73,6 +103,8 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
                                 var data = JsonSerializer.Deserialize<Notification>(dataStr, jsonOptions);
 
                                 if (data != null) {
+                                    this.lastState = data.State;
+
                                     if (
                                         data.Event is AddSubscriberPipeEvent ||
                                         data.Event is ReloadConfigurationEvent ||
