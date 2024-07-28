@@ -118,8 +118,13 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
                                         Logger.Debug("Got focus workspace event");
                                         var workspaces = data.State.Monitors.Elements[0].Workspaces.Elements;
                                         ((BandControl) control).UpdateWorkspaces(workspaces, ((FocusWorkspaceNumberEvent) data.Event).Content);
-                                    } else if (data.Event is SendContainerToWorkspaceNumberEvent) {
-                                        Logger.Debug("Got send to workspace event");
+                                    } else if (
+                                        data.Event is SendContainerToWorkspaceNumberEvent ||
+                                        data.Event is FocusChangeEvent ||
+                                        data.Event is CloakEvent ||
+                                        data.Event is UncloakEvent
+                                    ) {
+                                        Logger.Debug("Got event that calls generic update");
                                         var workspacesHolder = data.State.Monitors.Elements[0].Workspaces;
                                         var workspaces = workspacesHolder.Elements;
                                         ((BandControl) control).UpdateWorkspaces(workspaces, workspacesHolder.Focused);

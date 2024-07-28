@@ -136,17 +136,23 @@ public partial class BandControl: UserControl {
 
             var button = new Button();
             button.Name = $"komoband_workspace_{i}";
+
             button.AutoSize = true;
             button.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             button.AutoEllipsis = false;
+
             button.Padding = new Padding(0);
+
             button.Dock = this.deskband.TaskbarInfo.Orientation == CSDeskBand.TaskbarOrientation.Vertical ? DockStyle.Top : DockStyle.Left;
+
             button.FlatStyle = FlatStyle.Flat;
             button.BackColor = Color.Transparent;
             button.FlatAppearance.MouseDownBackColor = this.deskband.config.PressColor.ToColor();
             button.FlatAppearance.MouseOverBackColor = Color.Transparent;
             button.FlatAppearance.BorderSize = 0;
+
             button.Font = this.font;
+
             button.ForeColor = this.deskband.config.WorkspaceColor.ToColor();
             if (workspace.Containers.Elements.Length == 0) {
                 button.ForeColor = this.deskband.config.EmptyWorkspaceColor.ToColor();
@@ -154,12 +160,21 @@ public partial class BandControl: UserControl {
             if (i == selected) {
                 button.ForeColor = this.deskband.config.ActiveWorkspaceColor.ToColor();
             }
+
             button.TextAlign = ContentAlignment.MiddleCenter;
-            button.Text = workspace.Name;
+
+            var name = workspace.Name;
+            if (name == null || name == "") {
+                name = $"{i + 1}";
+            }
+
+            button.Text = name;
+
             button.Click += (sender, e) => {
                 int workspaceId = Int32.Parse(((Button) sender).Name.Replace("komoband_workspace_", ""));
                 SwitchWorkspace(workspaceId);
             };
+
             this.buttons[i] = button;
 
             if (this.InvokeRequired) {

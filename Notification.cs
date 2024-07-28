@@ -17,6 +17,9 @@ public class Notification {
 [JsonDerivedType(typeof(ReloadStaticConfigurationEvent), typeDiscriminator: "ReloadStaticConfiguration")]
 [JsonDerivedType(typeof(FocusWorkspaceNumberEvent), typeDiscriminator: "FocusWorkspaceNumber")]
 [JsonDerivedType(typeof(SendContainerToWorkspaceNumberEvent), typeDiscriminator: "SendContainerToWorkspaceNumber")]
+[JsonDerivedType(typeof(FocusChangeEvent), typeDiscriminator: "FocusChange")]
+[JsonDerivedType(typeof(CloakEvent), typeDiscriminator: "Cloak")]
+[JsonDerivedType(typeof(UncloakEvent), typeDiscriminator: "Uncloak")]
 public class Event;
 public class AddSubscriberPipeEvent : Event {
     public string Content {get; set;}
@@ -31,6 +34,9 @@ public class FocusWorkspaceNumberEvent : Event {
 public class SendContainerToWorkspaceNumberEvent : Event {
     public int Content {get; set;}
 }
+public class FocusChangeEvent : Event;
+public class CloakEvent : Event;
+public class UncloakEvent : Event;
 
 public class State {
     public Monitors Monitors {get; set;}
