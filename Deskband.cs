@@ -85,60 +85,69 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
         };
         Options.ContextMenuItems.Add(actionReload);
 
-        server = new NamedPipeServerStream("komoband", PipeDirection.In, 1);
+        server = new NamedPipeServerStream("komoband", PipeDirection.In, 2);
         pipeThread = new Thread(() => {
             while (true) {
                 try {
-                    if (server != null && !this.awaitingReconnect) {
+                    if (server != null && server.CanRead) {
                         if (!server.IsConnected) {
-                            server.WaitForConnection();
-                            Logger.Information("Connected to komorebi");
+                            try {
+                                server.WaitForConnection();
+                                Logger.Information("Connected to komorebi");
+                            } catch (IOException err) {
+                                if (server != null) server.Disconnect();
+                            }
                         }
 
-                        var dataStr = this.ReadString(server);
-                        Logger.Verbose("Got data:\n{Data}", dataStr.Replace("\n",""));
+                        if (server != null && server.IsConnected) {
+                            var dataStr = this.ReadString(server);
+                            Logger.Verbose("Got data:\n{Data}", dataStr.Replace("\n",""));
 
-                        if (dataStr.StartsWith("{")) {
-                            try {
-                                var data = JsonSerializer.Deserialize<Notification>(dataStr, jsonOptions);
+                            if (dataStr.StartsWith("{")) {
+                                try {
+                                    var data = JsonSerializer.Deserialize<Notification>(dataStr, jsonOptions);
 
-                                if (data != null) {
-                                    this.lastState = data.State;
+                                    if (data != null) {
+                                        this.lastState = data.State;
 
-                                    if (
-                                        data.Event is AddSubscriberPipeEvent ||
-                                        data.Event is ReloadConfigurationEvent ||
-                                        data.Event is ReloadStaticConfigurationEvent
-                                    ) {
-                                        Logger.Debug("Got setup event");
-                                        var workspacesHolder = data.State.Monitors.Elements[0].Workspaces;
-                                        var workspaces = workspacesHolder.Elements;
-                                        ((BandControl) control).SetupWorkspaces(workspaces, workspacesHolder.Focused);
-                                    } else if (data.Event is FocusWorkspaceNumberEvent) {
-                                        Logger.Debug("Got focus workspace event");
-                                        var workspaces = data.State.Monitors.Elements[0].Workspaces.Elements;
-                                        ((BandControl) control).UpdateWorkspaces(workspaces, ((FocusWorkspaceNumberEvent) data.Event).Content);
-                                    } else if (
-                                        data.Event is SendContainerToWorkspaceNumberEvent ||
-                                        data.Event is FocusChangeEvent ||
-                                        data.Event is CloakEvent ||
-                                        data.Event is UncloakEvent
-                                    ) {
-                                        Logger.Debug("Got event that calls generic update");
-                                        var workspacesHolder = data.State.Monitors.Elements[0].Workspaces;
-                                        var workspaces = workspacesHolder.Elements;
-                                        ((BandControl) control).UpdateWorkspaces(workspaces, workspacesHolder.Focused);
+                                        if (
+                                            data.Event is AddSubscriberPipeEvent ||
+                                            data.Event is ReloadConfigurationEvent ||
+                                            data.Event is ReloadStaticConfigurationEvent
+                                        ) {
+                                            Logger.Debug("Got setup event");
+                                            var workspacesHolder = data.State.Monitors.Elements[0].Workspaces;
+                                            var workspaces = workspacesHolder.Elements;
+                                            ((BandControl) control).SetupWorkspaces(workspaces, workspacesHolder.Focused);
+                                        } else if (data.Event is FocusWorkspaceNumberEvent) {
+                                            Logger.Debug("Got focus workspace event");
+                                            var workspaces = data.State.Monitors.Elements[0].Workspaces.Elements;
+                                            ((BandControl) control).UpdateWorkspaces(workspaces, ((FocusWorkspaceNumberEvent) data.Event).Content);
+                                        } else if (
+                                            data.Event is SendContainerToWorkspaceNumberEvent ||
+                                            data.Event is FocusChangeEvent ||
+                                            data.Event is CloakEvent ||
+                                            data.Event is UncloakEvent
+                                        ) {
+                                            Logger.Debug("Got event that calls generic update");
+                                            var workspacesHolder = data.State.Monitors.Elements[0].Workspaces;
+                                            var workspaces = workspacesHolder.Elements;
+                                            ((BandControl) control).UpdateWorkspaces(workspaces, workspacesHolder.Focused);
+                                        }
                                     }
+                                } catch (Exception serErr) {
+                                    Logger.Error(serErr, "Failed to deserialize JSON:");
                                 }
-                            } catch (Exception serErr) {
-                                Logger.Error(serErr, "Failed to deserialize JSON:");
                             }
                         }
                     }
                 } catch (Exception err) {
                     if (err is ThreadAbortException) {
                         if (server != null) {
-                            if (server.IsConnected) server.Disconnect();
+                            if (server.IsConnected) {
+                                server.WaitForPipeDrain();
+                                server.Disconnect();
+                            }
                             server.Close();
                         }
                     } else {
@@ -146,7 +155,10 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
                         ((BandControl) control).ShowLabel();
                         try {
                             if (server != null && !this.awaitingReconnect) {
-                                if (server.IsConnected) server.Disconnect();
+                                if (server.IsConnected) {
+                                    server.WaitForPipeDrain();
+                                    server.Disconnect();
+                                }
                                 this.ConnectPipe();
                             }
                         } catch (Exception err2) {
@@ -165,16 +177,22 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
                     if (komorebi.Length == 0 && !this.awaitingReconnect) {
                         Logger.Information("Lost komorebi");
                         ((BandControl) control).ShowLabel();
+                        this.awaitingReconnect = true;
                         if (server != null) {
-                            if (server.IsConnected) server.Disconnect();
+                            if (server.IsConnected) {
+                                server.WaitForPipeDrain();
+                                server.Disconnect();
+                            }
                             server.Close();
                             server = null;
                         }
-                        this.awaitingReconnect = true;
-                    } else if (komorebi.Length > 0 && this.awaitingReconnect) {
-                        server = new NamedPipeServerStream("komoband", PipeDirection.In, 1);
+                    } else if (komorebi.Length > 0 && this.awaitingReconnect && server == null) {
+                        server = new NamedPipeServerStream("komoband", PipeDirection.In, 2);
+                    }
+
+                    if (komorebi.Length > 0 && this.awaitingReconnect && server != null) {
                         this.ConnectPipe();
-                        this.awaitingReconnect = false;
+                        if (server.IsConnected) this.awaitingReconnect = false;
                     }
                 } catch {
                     // noop
@@ -201,12 +219,15 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
     }
 
     private string ReadString(PipeStream stream) {
+        if (stream == null || !stream.IsConnected || !stream.CanRead) return "";
+
         MemoryStream memoryStream = new MemoryStream();
 
         byte[] buffer = new byte[4096];
         int lastByte = 0x0;
 
         do {
+            if (stream == null || !stream.IsConnected || !stream.CanRead) return "";
             lastByte = stream.ReadByte();
             memoryStream.WriteByte((byte) lastByte);
         } while (lastByte != 0x0A);
