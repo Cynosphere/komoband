@@ -28,6 +28,7 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
     private static Thread pipeThread;
     private static Thread watchdog;
     private bool awaitingReconnect = false;
+    private bool pipeRecreated = false;
 
     private State lastState;
 
@@ -85,7 +86,7 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
         };
         Options.ContextMenuItems.Add(actionReload);
 
-        server = new NamedPipeServerStream("komoband", PipeDirection.In, 2);
+        server = new NamedPipeServerStream("komoband", PipeDirection.In, -1);
         pipeThread = new Thread(() => {
             while (true) {
                 try {
@@ -95,6 +96,7 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
                                 server.WaitForConnection();
                                 Logger.Information("Connected to komorebi");
                             } catch (IOException err) {
+                                //Logger.Error(err, "Failed to get connection:");
                                 if (server != null) server.Disconnect();
                             }
                         }
@@ -186,15 +188,19 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
                             server.Close();
                             server = null;
                         }
-                    } else if (komorebi.Length > 0 && this.awaitingReconnect && server == null) {
-                        server = new NamedPipeServerStream("komoband", PipeDirection.In, 2);
+                    } else if (komorebi.Length > 0 && this.awaitingReconnect) {
+                        Logger.Information("Found komorebi");
+                        if (server == null) {
+                            server = new NamedPipeServerStream("komoband", PipeDirection.In, -1);
+                        }
+                        if (server != null) {
+                            this.ConnectPipe();
+                            Thread.Sleep(1000);
+                            if (server.IsConnected) this.awaitingReconnect = false;
+                        }
                     }
-
-                    if (komorebi.Length > 0 && this.awaitingReconnect && server != null) {
-                        this.ConnectPipe();
-                        if (server.IsConnected) this.awaitingReconnect = false;
-                    }
-                } catch {
+                } catch (Exception err) {
+                    Logger.Error(err, "Watchdog fail:");
                     // noop
                 }
             }
