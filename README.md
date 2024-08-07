@@ -18,6 +18,4 @@ Config file is located at `%appdata%/komoband/config.json`
 
 ## To-Do
 - Layout switcher
-
-## Known Issues
-- Sometimes fails to reconnect properly when komorebi is restarted
+- Config window
