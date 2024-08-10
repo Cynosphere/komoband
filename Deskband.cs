@@ -9,6 +9,7 @@ using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 
+#pragma warning disable 0168
 #pragma warning disable 8603
 #pragma warning disable 8618
 #pragma warning disable 8625
@@ -28,7 +29,6 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
     private static Thread pipeThread;
     private static Thread watchdog;
     private bool awaitingReconnect = false;
-    private bool pipeRecreated = false;
 
     private State lastState;
 
@@ -45,11 +45,10 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
         this.config = Config.Load();
 
         this.loggerSwitch = new LoggingLevelSwitch();
-        // TODO: configurable when config exists
         this.loggerSwitch.MinimumLevel = this.config.DebugLogs ? LogEventLevel.Verbose : LogEventLevel.Information;
         var logConfig = new LoggerConfiguration()
             .MinimumLevel.ControlledBy(this.loggerSwitch)
-            .WriteTo.File(Path.Combine(Constants.DATA_PATH, "log.txt"), rollingInterval: RollingInterval.Day);
+            .WriteTo.File(Path.Combine(Constants.DATA_PATH, "log.txt"));
         this.Logger = logConfig.CreateLogger();
         Log.Logger = Logger;
 
@@ -65,6 +64,8 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
         Options.MinVerticalSize = new Size(30, 30);
         Options.MaxVerticalWidth = 30;
         Options.VerticalSize = new Size(30, 192);
+
+        this.TaskbarInfo.TaskbarOrientationChanged += OrientationChanged;
 
         control = new BandControl(this);
 
@@ -258,6 +259,14 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
         }
     }
 
+    private void OrientationChanged(object sender, CSDeskBand.TaskbarOrientationChangedEventArgs e) {
+        if (server != null && server.IsConnected && this.lastState != null) {
+            var workspacesHolder = this.lastState.Monitors.Elements[0].Workspaces;
+            var workspaces = workspacesHolder.Elements;
+            ((BandControl) control).SetupWorkspaces(workspaces, workspacesHolder.Focused);
+        }
+    }
+
     protected override Control Control => control;
 
     // fix for Unsafe complaining about older version
@@ -269,12 +278,4 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
         }
         return null;
     }
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    static extern bool AllocConsole();
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    static extern bool FreeConsole();
 }

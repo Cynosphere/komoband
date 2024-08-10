@@ -18,7 +18,7 @@ public partial class BandControl: UserControl {
     }
 
     public void InitializeComponent() {
-        this.labelStatus = new Label();
+        this.labelStatus = new StatusLabel(this.deskband);
         this.SuspendLayout();
 
         this.Name = "komoband";
@@ -40,33 +40,6 @@ public partial class BandControl: UserControl {
 
         this.ResumeLayout(false);
         this.PerformLayout();
-    }
-
-    private void labelStatus_Paint(object sender, PaintEventArgs e) {
-        Label label = (Label) sender;
-
-        var gr = e.Graphics;
-        var rect = new Rectangle(0, 0, 192, 30);
-        var brush = new SolidBrush(label.ForeColor);
-
-        var format = new StringFormat();
-        format.Alignment = StringAlignment.Center;
-        format.LineAlignment = StringAlignment.Center;
-
-        var state = gr.Save();
-        gr.ResetTransform();
-
-        if (this.deskband.TaskbarInfo.Orientation == CSDeskBand.TaskbarOrientation.Vertical) {
-            gr.RotateTransform(90);
-        }
-
-        gr.TranslateTransform(rect.Width / 2, rect.Height / 2, System.Drawing.Drawing2D.MatrixOrder.Append);
-
-        gr.DrawString(label.Text, label.Font, brush, rect, format);
-
-        gr.Restore(state);
-
-        brush.Dispose();
     }
 
     private void _ShowLabel() {
