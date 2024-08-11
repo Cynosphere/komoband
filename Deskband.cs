@@ -9,28 +9,24 @@ using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 
-#pragma warning disable 0168
-#pragma warning disable 8603
-#pragma warning disable 8618
-#pragma warning disable 8625
 namespace komoband;
 
 [ComVisible(true)]
 [Guid("6249307D-7F13-437B-BF13-13BE692C22A5")]
 [CSDeskBand.CSDeskBandRegistration(Name = "komoband", ShowDeskBand = false)]
 public class Deskband : CSDeskBand.CSDeskBandWin {
-    public Logger Logger;
-    public LoggingLevelSwitch loggerSwitch;
+    public Logger Logger = null!;
+    public LoggingLevelSwitch loggerSwitch = null!;
 
-    public Config config;
+    public Config config = null!;
 
-    private static Control control;
-    private static NamedPipeServerStream server;
-    private static Thread pipeThread;
-    private static Thread watchdog;
+    private static Control control = null!;
+    private static NamedPipeServerStream server = null!;
+    private static Thread pipeThread = null!;
+    private static Thread watchdog = null!;
     private bool awaitingReconnect = false;
 
-    private State lastState;
+    private State lastState = null!;
 
     private static JsonSerializerOptions jsonOptions = new JsonSerializerOptions {
         PropertyNameCaseInsensitive = true
@@ -96,8 +92,7 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
                             try {
                                 server.WaitForConnection();
                                 Logger.Information("Connected to komorebi");
-                            } catch (IOException err) {
-                                //Logger.Error(err, "Failed to get connection:");
+                            } catch {
                                 if (server != null) server.Disconnect();
                             }
                         }
@@ -192,7 +187,7 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
                                 server.Disconnect();
                             }
                             server.Close();
-                            server = null;
+                            server = null!;
                         }
                     } else if (komorebi.Length > 0 && this.awaitingReconnect) {
                         Logger.Information("Found komorebi");
@@ -281,6 +276,6 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
         if (name.Name == "System.Runtime.CompilerServices.Unsafe") {
             return typeof(System.Runtime.CompilerServices.Unsafe).Assembly;
         }
-        return null;
+        return null!;
     }
 }

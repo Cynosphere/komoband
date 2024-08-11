@@ -1,30 +1,28 @@
 using System.Diagnostics;
 
-#pragma warning disable 8618
-#pragma warning disable 8625
 namespace komoband;
 
 public partial class BandControl: UserControl {
-    private Deskband deskband = null;
-    private Label labelStatus;
-    private Button[] buttons;
-    private Button layoutSwitcher;
+    private Deskband deskband = null!;
+    private Label labelStatus = null!;
+    private Button[] buttons = null!;
+    private Button layoutSwitcher = null!;
 
-    private ToolTip layoutTooltip;
+    private ToolTip layoutTooltip = null!;
 
-    private MenuItem layoutMenuNextLayout;
-    private MenuItem layoutMenuPrevLayout;
-    private MenuItem layoutMenuBsp;
-    private MenuItem layoutMenuColumns;
-    private MenuItem layoutMenuRows;
-    private MenuItem layoutMenuVerticalStack;
-    private MenuItem layoutMenuHorizontalStack;
-    private MenuItem layoutMenuUltrawideVerticalStack;
-    private MenuItem layoutMenuGrid;
-    private MenuItem layoutMenuRightMainVerticalStack;
+    private MenuItem layoutMenuNextLayout = null!;
+    private MenuItem layoutMenuPrevLayout = null!;
+    private MenuItem layoutMenuBsp = null!;
+    private MenuItem layoutMenuColumns = null!;
+    private MenuItem layoutMenuRows = null!;
+    private MenuItem layoutMenuVerticalStack = null!;
+    private MenuItem layoutMenuHorizontalStack = null!;
+    private MenuItem layoutMenuUltrawideVerticalStack = null!;
+    private MenuItem layoutMenuGrid = null!;
+    private MenuItem layoutMenuRightMainVerticalStack = null!;
 
-    private Font font;
-    private Font layoutFont;
+    private Font font = null!;
+    private Font layoutFont = null!;
 
     public BandControl(Deskband deskband) {
         this.deskband = deskband;
@@ -64,7 +62,7 @@ public partial class BandControl: UserControl {
                 this.Controls.Remove(button);
                 button.Dispose();
             }
-            this.buttons = null;
+            this.buttons = null!;
         }
 
         if (this.layoutSwitcher != null) this.layoutSwitcher.Dispose();

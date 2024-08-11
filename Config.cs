@@ -4,8 +4,6 @@ using System.Text.Json.Serialization;
 
 using Serilog;
 
-#pragma warning disable 8600
-#pragma warning disable 8602
 namespace komoband;
 
 public class Config : IDisposable {
@@ -31,13 +29,13 @@ public class Config : IDisposable {
     public static Config Load() {
         Config config;
         try {
-            config = JsonSerializer.Deserialize<Config>(File.ReadAllText(ConfigPath));
+            config = JsonSerializer.Deserialize<Config>(File.ReadAllText(ConfigPath))!;
         } catch (Exception err) {
             Log.Warning(err, "Failed to load config file, overwriting with new one:");
             config = new Config();
         }
 
-        config.Save();
+        config!.Save();
 
         return config;
     }

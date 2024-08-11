@@ -1,8 +1,7 @@
 namespace komoband;
 
-#pragma warning disable 8625
 public partial class StatusLabel : Label {
-    private Deskband deskband = null;
+    private Deskband deskband = null!;
     public StatusLabel(Deskband deskband) {
         this.deskband = deskband;
     }
