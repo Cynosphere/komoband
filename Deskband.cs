@@ -82,7 +82,7 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
                 var selected = workspacesHolder.Focused;
                 var workspaces = workspacesHolder.Elements;
 
-                band.UpdateWorkspaces(workspaces, selected);
+                band.SetupWorkspaces(workspaces, selected);
             }
         };
         Options.ContextMenuItems.Add(actionReload);
@@ -130,7 +130,12 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
                                             data.Event is SendContainerToWorkspaceNumberEvent ||
                                             data.Event is FocusChangeEvent ||
                                             data.Event is CloakEvent ||
-                                            data.Event is UncloakEvent
+                                            data.Event is UncloakEvent ||
+                                            data.Event is ChangeLayoutEvent ||
+                                            data.Event is ChangeLayoutCustomEvent ||
+                                            data.Event is CycleLayoutEvent ||
+                                            data.Event is ToggleMonocleEvent ||
+                                            data.Event is ToggleTilingEvent
                                         ) {
                                             Logger.Debug("Got event that calls generic update");
                                             var workspacesHolder = data.State.Monitors.Elements[0].Workspaces;

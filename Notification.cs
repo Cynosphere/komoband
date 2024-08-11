@@ -20,6 +20,11 @@ public class Notification {
 [JsonDerivedType(typeof(FocusChangeEvent), typeDiscriminator: "FocusChange")]
 [JsonDerivedType(typeof(CloakEvent), typeDiscriminator: "Cloak")]
 [JsonDerivedType(typeof(UncloakEvent), typeDiscriminator: "Uncloak")]
+[JsonDerivedType(typeof(ChangeLayoutEvent), typeDiscriminator: "ChangeLayout")]
+[JsonDerivedType(typeof(ChangeLayoutCustomEvent), typeDiscriminator: "ChangeLayoutCustom")]
+[JsonDerivedType(typeof(CycleLayoutEvent), typeDiscriminator: "CycleLayout")]
+[JsonDerivedType(typeof(ToggleMonocleEvent), typeDiscriminator: "ToggleMonocle")]
+[JsonDerivedType(typeof(ToggleTilingEvent), typeDiscriminator: "ToggleTiling")]
 public class Event;
 public class AddSubscriberPipeEvent : Event {
     public string Content {get; set;}
@@ -37,6 +42,17 @@ public class SendContainerToWorkspaceNumberEvent : Event {
 public class FocusChangeEvent : Event;
 public class CloakEvent : Event;
 public class UncloakEvent : Event;
+public class ChangeLayoutEvent : Event {
+    public string Content {get; set;}
+}
+public class ChangeLayoutCustomEvent : Event {
+    public string Content {get; set;}
+}
+public class CycleLayoutEvent : Event {
+    public string Content {get; set;}
+}
+public class ToggleMonocleEvent : Event;
+public class ToggleTilingEvent : Event;
 
 public class State {
     public Monitors Monitors {get; set;}
@@ -58,14 +74,30 @@ public class Workspaces {
 public class Workspace {
     public string Name {get; set;}
     public Containers Containers {get; set;}
+    public bool Tile {get; set;}
+    public Layout Layout {get; set;}
+    [JsonPropertyName("monocle_container")]
+    public MonocleContainer? MonocleContainer {get; set;}
 }
 
 public class Containers {
     public Container[] Elements {get; set;}
     public int Focused {get; set;}
-    public bool Tile {get; set;}
 }
 
 public class Container {
+    public string Id {get; set;}
+}
+
+public class Layout {
+    public string? Default {get; set;}
+    public CustomLayout[]? Custom {get; set;}
+}
+
+public class CustomLayout {
+    public string Column {get; set;}
+}
+
+public class MonocleContainer {
     public string Id {get; set;}
 }

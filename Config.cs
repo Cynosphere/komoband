@@ -20,6 +20,12 @@ public class Config : IDisposable {
     [JsonInclude] public ConfigColor EmptyWorkspaceColor = new ConfigColor(56, 56, 56, 255);
     [JsonInclude] public ConfigColor PressColor = new ConfigColor(0, 0, 0, 64);
 
+    [JsonInclude] public bool LayoutEnabled = true;
+    [JsonInclude] public string LayoutFont = "Segoe UI";
+    [JsonInclude] public float LayoutFontSize = 8F;
+    [JsonInclude] public ConfigColor LayoutColor = new ConfigColor(222, 219, 235, 255);
+    [JsonInclude] public LayoutIcons LayoutIcons = new LayoutIcons();
+
     [JsonInclude] public bool DebugLogs = false;
 
     public static Config Load() {
@@ -72,4 +78,18 @@ public class ConfigColor {
     public Color ToColor() {
         return Color.FromArgb(this.A, this.R, this.G, this.B);
     }
+}
+
+public class LayoutIcons {
+    public string Bsp {get; set;} = "├┬";
+    public string Columns {get; set;} = "│││";
+    public string Rows {get; set;} = "≡";
+    public string VerticalStack {get; set;} = "├─";
+    public string HorizontalStack {get; set;} = "┬┬";
+    public string UltrawideVerticalStack {get; set;} = "│ ├─";
+    public string Grid {get; set;} = "─┼─";
+    public string RightMainVerticalStack {get; set;} = "─┤";
+    public string Custom {get; set;} = "│C│";
+    public string Monocle {get; set;} = "│M│";
+    public string Floating {get; set;} = "><>";
 }
