@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Numerics;
 
 using Serilog;
 
@@ -75,6 +76,17 @@ public class ConfigColor {
 
     public Color ToColor() {
         return Color.FromArgb(this.A, this.R, this.G, this.B);
+    }
+
+    public Vector4 ToVector4() {
+        return new Vector4(this.R / 255F, this.G / 255F, this.B / 255F, this.A / 255F);
+    }
+
+    public void FromVector4(Vector4 vec) {
+        this.R = (int) (vec.X * 255F);
+        this.G = (int) (vec.Y * 255F);
+        this.B = (int) (vec.Z * 255F);
+        this.A = (int) (vec.W * 255F);
     }
 }
 

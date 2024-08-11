@@ -28,12 +28,15 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
 
     private State lastState = null!;
 
+    private ConfigWindow configWindow = null!;
+
     private static JsonSerializerOptions jsonOptions = new JsonSerializerOptions {
         PropertyNameCaseInsensitive = true
     };
 
     public Deskband() {
         AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
+        Application.EnableVisualStyles();
 
         if (!Directory.Exists(Constants.DATA_PATH))
             Directory.CreateDirectory(Constants.DATA_PATH);
@@ -65,21 +68,25 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
 
         control = new BandControl(this);
 
+        var actionConfig = new CSDeskBand.ContextMenu.DeskBandMenuAction("Configure");
+        actionConfig.Enabled = true;
+        actionConfig.Clicked += (sender, args) => {
+            try {
+                // FIXME: focus existing
+                if (this.configWindow != null) configWindow.Dispose();
+
+                this.configWindow = new ConfigWindow(this);
+            } catch (Exception err) {
+                Logger.Error(err, "Failed to initiate ConfigWindow:");
+            }
+        };
+        Options.ContextMenuItems.Add(actionConfig);
+
         var actionReload = new CSDeskBand.ContextMenu.DeskBandMenuAction("Reload Config");
         actionReload.Enabled = true;
         actionReload.Clicked += (sender, args) => {
             config = Config.Load();
-            var band = (BandControl) control;
-
-            band.UpdateFont();
-
-            if (this.lastState != null) {
-                var workspacesHolder = this.lastState.Monitors.Elements[0].Workspaces;
-                var selected = workspacesHolder.Focused;
-                var workspaces = workspacesHolder.Elements;
-
-                band.SetupWorkspaces(workspaces, selected);
-            }
+            ApplyConfigUpdate();
         };
         Options.ContextMenuItems.Add(actionReload);
 
@@ -267,6 +274,20 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
         }
     }
 
+    public void ApplyConfigUpdate() {
+        var band = (BandControl) control;
+
+        band.UpdateFont();
+
+        if (this.lastState != null) {
+            var workspacesHolder = this.lastState.Monitors.Elements[0].Workspaces;
+            var selected = workspacesHolder.Focused;
+            var workspaces = workspacesHolder.Elements;
+
+            band.SetupWorkspaces(workspaces, selected);
+        }
+    }
+
     protected override Control Control => control;
 
     // fix for Unsafe complaining about older version
@@ -275,6 +296,12 @@ public class Deskband : CSDeskBand.CSDeskBandWin {
         var name = new AssemblyName(args.Name);
         if (name.Name == "System.Runtime.CompilerServices.Unsafe") {
             return typeof(System.Runtime.CompilerServices.Unsafe).Assembly;
+        } else if (name.Name == "System.Numerics.Vectors") {
+            return typeof(System.Numerics.Vector).Assembly;
+        } else if (name.Name == "System.Buffers") {
+            return typeof(System.Buffers.ArrayPool<>).Assembly;
+        } else if (name.Name == "System.Memory") {
+            return typeof(System.Memory<>).Assembly;
         }
         return null!;
     }

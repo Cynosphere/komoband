@@ -40,9 +40,9 @@ public partial class BandControl: UserControl {
 
         this.labelStatus.Name = "komoband_status";
         if (this.deskband.TaskbarInfo.Orientation == CSDeskBand.TaskbarOrientation.Vertical) {
-            this.labelStatus.Size = new Size(30, 192);
+            this.labelStatus.Size = this.deskband.Options.VerticalSize;
         } else {
-            this.labelStatus.Size = new Size(192, 30);
+            this.labelStatus.Size = this.deskband.Options.HorizontalSize;
         }
         this.labelStatus.Dock = DockStyle.Fill;
         this.labelStatus.Font = this.font;
