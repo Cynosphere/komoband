@@ -5,6 +5,8 @@ Simplistic workspace switcher deskband for [komorebi](https://github.com/LGUG2Z/
 
 ![Screenshot of komoband with mixed name styles for workspaces](.assets/mixed_names.png)
 
+![Screenshot of komoband with layout switcher and it's context menu](.assets/layout_switcher.png)
+
 ## Install
 
 ### Automatic
@@ -66,5 +68,4 @@ Windows Registry Editor Version 5.00
 Config file is located at `%appdata%/komoband/config.json`
 
 ## To-Do
-- Layout switcher
 - Config window
