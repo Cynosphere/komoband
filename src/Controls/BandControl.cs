@@ -86,8 +86,8 @@ public partial class BandControl: UserControl {
     public void _UpdateFont() {
         var config = this.deskband.config;
 
-        this.font = new Font(config.Font, config.FontSize, FontStyle.Regular, GraphicsUnit.Point, 0);
-        this.layoutFont = new Font(config.LayoutFont, config.LayoutFontSize, FontStyle.Regular, GraphicsUnit.Point, 0);
+        this.font = new Font(config.Font, config.FontSize, FontStyle.Regular, GraphicsUnit.Point, 1);
+        this.layoutFont = new Font(config.LayoutFont, config.LayoutFontSize, FontStyle.Regular, GraphicsUnit.Point, 1);
 
         if (this.labelStatus != null) {
             this.labelStatus.Font = this.font;
