@@ -60,6 +60,8 @@ public partial class BandControl: UserControl {
         if (this.buttons != null) {
             foreach (Button button in this.buttons) {
                 this.Controls.Remove(button);
+                if (button == null) continue;
+
                 button.Dispose();
             }
             this.buttons = null!;
@@ -118,9 +120,9 @@ public partial class BandControl: UserControl {
 
         if (this.buttons != null) {
             foreach (Button button in this.buttons) {
+                this.Controls.Remove(button);
                 if (button == null) continue;
 
-                this.Controls.Remove(button);
                 button.Dispose();
             }
         }
