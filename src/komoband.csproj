@@ -20,15 +20,15 @@
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
-    <PackageReference Include="System.Text.Json" Version="8.0.4" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ext/SDL2.dll">
+    <None Update="../ext/SDL2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <TargetPath>SDL2.dll</TargetPath>
     </None>
-    <None Update="ext/cimgui.dll">
+    <None Update="../ext/cimgui.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <TargetPath>cimgui.dll</TargetPath>
     </None>
