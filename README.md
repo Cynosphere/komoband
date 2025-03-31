@@ -18,13 +18,13 @@ Requires git (can be suplemented for Download ZIP), and [.NET SDK](https://downl
 ```
 git clone https://github.com/Cynosphere/komoband.git
 cd komoband
-dotnet build
+dotnet build src
 ```
 
 If you have [Visual Studio Build Tools](https://aka.ms/vs/17/release/vs_BuildTools.exe) installed:
 
 ```
-cd bin/x64/Debug/net472
+cd src/bin/x64/Debug/net472
 "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
 sudo regasm /codebase komoband.dll
 ```
@@ -51,13 +51,13 @@ Windows Registry Editor Version 5.00
 "Class"="komoband.Deskband"
 "Assembly"="komoband, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 "RuntimeVersion"="v4.0.30319"
-"CodeBase"="file:///C:/path/to/komoband/bin/x64/Debug/net472/komoband.DLL"
+"CodeBase"="file:///C:/path/to/komoband/src/bin/x64/Debug/net472/komoband.DLL"
 
 [HKEY_CLASSES_ROOT\CLSID\{6249307D-7F13-437B-BF13-13BE692C22A5}\InprocServer32\1.0.0.0]
 "Class"="komoband.Deskband"
 "Assembly"="komoband, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
 "RuntimeVersion"="v4.0.30319"
-"CodeBase"="file:///C:/path/to/komoband/bin/x64/Debug/net472/komoband.DLL"
+"CodeBase"="file:///C:/path/to/komoband/src/bin/x64/Debug/net472/komoband.DLL"
 
 [HKEY_CLASSES_ROOT\CLSID\{6249307D-7F13-437B-BF13-13BE692C22A5}\ProgId]
 @="komoband.Deskband"
