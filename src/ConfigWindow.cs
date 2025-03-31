@@ -33,6 +33,8 @@ public class ConfigWindow : IDisposable {
     private Vector4 colorEmptyWorkspace;
     private Vector4 colorLayout;
 
+    private static char[] utf8MyBehated = {'\u0000', '\uFFFD'};
+
     public ConfigWindow(Deskband deskband) {
         this.deskband = deskband;
 
@@ -407,52 +409,52 @@ public class ConfigWindow : IDisposable {
                 ImGui.ColorEdit4("Layout Foreground", ref colorLayout, ImGuiColorEditFlags.AlphaPreviewHalf);
 
                 ImGui.SeparatorText("Icons");
-                var iconFloating = Encoding.Default.GetBytes(config.LayoutIcons.Floating);
+                var iconFloating = Encoding.UTF8.GetBytes(config.LayoutIcons.Floating);
                 ImGui.InputText("Floating", iconFloating, 12);
-                config.LayoutIcons.Floating = Encoding.UTF8.GetString(iconFloating);
+                config.LayoutIcons.Floating = Encoding.UTF8.GetString(iconFloating).Trim(utf8MyBehated);
 
-                var iconMonocle = Encoding.Default.GetBytes(config.LayoutIcons.Monocle);
+                var iconMonocle = Encoding.UTF8.GetBytes(config.LayoutIcons.Monocle);
                 ImGui.InputText("Monocle", iconMonocle, 12);
-                config.LayoutIcons.Monocle = Encoding.UTF8.GetString(iconMonocle);
+                config.LayoutIcons.Monocle = Encoding.UTF8.GetString(iconMonocle).Trim(utf8MyBehated);
 
-                var iconCustom = Encoding.Default.GetBytes(config.LayoutIcons.Custom);
+                var iconCustom = Encoding.UTF8.GetBytes(config.LayoutIcons.Custom);
                 ImGui.InputText("Custom", iconCustom, 12);
-                config.LayoutIcons.Custom = Encoding.UTF8.GetString(iconCustom);
+                config.LayoutIcons.Custom = Encoding.UTF8.GetString(iconCustom).Trim(utf8MyBehated);
 
                 ImGui.Spacing();
                 ImGui.Spacing();
 
-                var iconBsp = Encoding.Default.GetBytes(config.LayoutIcons.Bsp);
+                var iconBsp = Encoding.UTF8.GetBytes(config.LayoutIcons.Bsp);
                 ImGui.InputText("BSP", iconBsp, 12);
-                config.LayoutIcons.Bsp = Encoding.UTF8.GetString(iconBsp);
+                config.LayoutIcons.Bsp = Encoding.UTF8.GetString(iconBsp).Trim(utf8MyBehated);
 
-                var iconColumns = Encoding.Default.GetBytes(config.LayoutIcons.Columns);
+                var iconColumns = Encoding.UTF8.GetBytes(config.LayoutIcons.Columns);
                 ImGui.InputText("Columns", iconColumns, 12);
-                config.LayoutIcons.Columns = Encoding.UTF8.GetString(iconColumns);
+                config.LayoutIcons.Columns = Encoding.UTF8.GetString(iconColumns).Trim(utf8MyBehated);
 
-                var iconRows = Encoding.Default.GetBytes(config.LayoutIcons.Rows);
+                var iconRows = Encoding.UTF8.GetBytes(config.LayoutIcons.Rows);
                 ImGui.InputText("Rows", iconRows, 12);
-                config.LayoutIcons.Rows = Encoding.UTF8.GetString(iconRows);
+                config.LayoutIcons.Rows = Encoding.UTF8.GetString(iconRows).Trim(utf8MyBehated);
 
-                var iconVerticalStack = Encoding.Default.GetBytes(config.LayoutIcons.VerticalStack);
+                var iconVerticalStack = Encoding.UTF8.GetBytes(config.LayoutIcons.VerticalStack);
                 ImGui.InputText("Vertical Stack", iconVerticalStack, 12);
-                config.LayoutIcons.VerticalStack = Encoding.UTF8.GetString(iconVerticalStack);
+                config.LayoutIcons.VerticalStack = Encoding.UTF8.GetString(iconVerticalStack).Trim(utf8MyBehated);
 
-                var iconHorizontalStack = Encoding.Default.GetBytes(config.LayoutIcons.HorizontalStack);
+                var iconHorizontalStack = Encoding.UTF8.GetBytes(config.LayoutIcons.HorizontalStack);
                 ImGui.InputText("Horizontal Stack", iconHorizontalStack, 12);
-                config.LayoutIcons.HorizontalStack = Encoding.UTF8.GetString(iconHorizontalStack);
+                config.LayoutIcons.HorizontalStack = Encoding.UTF8.GetString(iconHorizontalStack).Trim(utf8MyBehated);
 
-                var iconUltrawideVerticalStack = Encoding.Default.GetBytes(config.LayoutIcons.UltrawideVerticalStack);
+                var iconUltrawideVerticalStack = Encoding.UTF8.GetBytes(config.LayoutIcons.UltrawideVerticalStack);
                 ImGui.InputText("Ultrawide Vertical Stack", iconUltrawideVerticalStack, 12);
-                config.LayoutIcons.UltrawideVerticalStack = Encoding.UTF8.GetString(iconUltrawideVerticalStack);
+                config.LayoutIcons.UltrawideVerticalStack = Encoding.UTF8.GetString(iconUltrawideVerticalStack).Trim(utf8MyBehated);
 
-                var iconGrid = Encoding.Default.GetBytes(config.LayoutIcons.Grid);
+                var iconGrid = Encoding.UTF8.GetBytes(config.LayoutIcons.Grid);
                 ImGui.InputText("Grid", iconGrid, 12);
-                config.LayoutIcons.Grid = Encoding.UTF8.GetString(iconGrid);
+                config.LayoutIcons.Grid = Encoding.UTF8.GetString(iconGrid).Trim(utf8MyBehated);
 
-                var iconRightMainVerticalStack = Encoding.Default.GetBytes(config.LayoutIcons.RightMainVerticalStack);
+                var iconRightMainVerticalStack = Encoding.UTF8.GetBytes(config.LayoutIcons.RightMainVerticalStack);
                 ImGui.InputText("Right Main Vertical Stack", iconRightMainVerticalStack, 12);
-                config.LayoutIcons.RightMainVerticalStack = Encoding.UTF8.GetString(iconRightMainVerticalStack);
+                config.LayoutIcons.RightMainVerticalStack = Encoding.UTF8.GetString(iconRightMainVerticalStack).Trim(utf8MyBehated);
 
                 this.EndGroupPanel();
             }
